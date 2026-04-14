@@ -23,7 +23,7 @@ class BalanceCommandTest {
     }
 
     @Test
-    void execute_tinyNonZeroBalance_displaysScientificNotation() {
+    void execute_tinyNonZeroBalance_displaysScientificNotation() throws Crypto1010Exception {
         Blockchain blockchain = new Blockchain(List.of(
             new Block(
                 0,
@@ -48,7 +48,7 @@ class BalanceCommandTest {
     }
 
     @Test
-    void execute_existingWallet_printsBalanceToEightDecimalPlaces() {
+    void execute_existingWallet_printsBalanceToEightDecimalPlaces() throws Crypto1010Exception {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         walletManager.createWallet("bob");
@@ -74,7 +74,7 @@ class BalanceCommandTest {
     }
 
     @Test
-    void execute_decimalBalance_roundsToEightDecimalPlaces() {
+    void execute_decimalBalance_roundsToEightDecimalPlaces() throws Crypto1010Exception {
         Blockchain blockchain = new Blockchain(List.of(
                 new Block(
                         0,
@@ -100,7 +100,7 @@ class BalanceCommandTest {
 
 
     @Test
-    void execute_selfTransfer_keepsNetZeroBalance() {
+    void execute_selfTransfer_keepsNetZeroBalance() throws Crypto1010Exception {
         Blockchain blockchain = new Blockchain(List.of(
             new Block(
                 0,
