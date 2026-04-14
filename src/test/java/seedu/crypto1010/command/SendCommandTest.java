@@ -5,10 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import seedu.crypto1010.exceptions.Crypto1010Exception;
 import seedu.crypto1010.model.Blockchain;
-// import seedu.crypto1010.model.KeyPair;
+import seedu.crypto1010.model.KeyPair;
 import seedu.crypto1010.model.Wallet;
 import seedu.crypto1010.model.WalletManager;
 
@@ -19,22 +20,25 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
 
-class SendCommandTest {
-        @Test
-        void execute_walletWithoutKeygen_throwsException() {
-            Blockchain blockchain = Blockchain.createDefault();
-            WalletManager walletManager = new WalletManager();
-            walletManager.createWallet("noKeygen");
-            SendCommand command = new SendCommand("w/noKeygen to/" + ETH_ADDRESS + " amt/1", walletManager);
+public class SendCommandTest {
 
-            Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
-            assertEquals("Error: Must run keygen for this wallet before sending.", exception.getMessage());
-        }
     private static final String ETH_ADDRESS = "0x1111111111111111111111111111111111111111";
     private static final String BTC_ADDRESS = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt080";
     private static final String SOL_ADDRESS = "So11111111111111111111111111111111111111112";
+
     private String normalizeOutput(String s) {
         return s.replaceAll("\r\n", "\n").replaceAll("[ \t]+$", "").trim();
+    }
+
+    @Test
+    void execute_walletWithoutKeygen_throwsException() {
+        Blockchain blockchain = Blockchain.createDefault();
+        WalletManager walletManager = new WalletManager();
+        walletManager.createWallet("noKeygen");
+        SendCommand command = new SendCommand("w/noKeygen to/" + ETH_ADDRESS + " amt/1", walletManager);
+
+        Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
+        assertEquals("Error: Must run keygen for this wallet before sending.", exception.getMessage());
     }
 
     @Test
@@ -42,7 +46,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob"); // bob has balance 10 from default blockchain
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/4", walletManager);
 
         String output = runCommand(command, blockchain);
@@ -68,7 +76,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet wallet = walletManager.createWallet("alice"); // alice has balance -10
-        try { wallet.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            wallet.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/alice to/" + ETH_ADDRESS + " amt/1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -92,7 +104,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/-5", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -105,7 +121,12 @@ class SendCommandTest {
     void execute_extremeScientificAmount_throwsException() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/1e-100000000", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -129,7 +150,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand(
                 "w/bob to/" + ETH_ADDRESS + " amt/4 speed/fast fee/0.5 note/priority transfer",
                 walletManager);
@@ -154,10 +179,15 @@ class SendCommandTest {
     void execute_manualFeeOverrideWithUnsupportedSpeed_succeeds() {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
-        walletManager.createWallet("bob");
+        Wallet bob = walletManager.createWallet("bob");
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand(
-                "w/bob to/" + ETH_ADDRESS + " amt/1 speed/ultra fee/0.1",
-                walletManager);
+            "w/bob to/" + ETH_ADDRESS + " amt/1 speed/ultra fee/0.1",
+            walletManager);
 
         String output = runCommand(command, blockchain);
 
@@ -178,7 +208,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand(
                 "w/bob to/" + ETH_ADDRESS + " amt/1 fee/0 note/repay w/alice tomorrow",
                 walletManager);
@@ -203,7 +237,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + BTC_ADDRESS + " amt/1 fee/0", walletManager);
 
         String output = runCommand(command, blockchain);
@@ -222,7 +260,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + SOL_ADDRESS + " amt/1 fee/0", walletManager);
 
         String output = runCommand(command, blockchain);
@@ -241,7 +283,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/not-an-address amt/1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -255,7 +301,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand(
                 "w/bob to/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kygt08I amt/1",
                 walletManager);
@@ -271,7 +321,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/1 speed/urgent", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
@@ -285,7 +339,11 @@ class SendCommandTest {
         Blockchain blockchain = Blockchain.createDefault();
         WalletManager walletManager = new WalletManager();
         Wallet bob = walletManager.createWallet("bob");
-        try { bob.setKeys(Key.generateKeyPair()); } catch (Exception ignored) {}
+        try {
+            bob.setKeys(KeyPair.generate("btc"));
+        } catch (Exception e) {
+            fail("Key generation failed: " + e.getMessage());
+        }
         SendCommand command = new SendCommand("w/bob to/" + ETH_ADDRESS + " amt/1 fee/-0.1", walletManager);
 
         Crypto1010Exception exception = assertThrows(Crypto1010Exception.class, () -> command.execute(blockchain));
