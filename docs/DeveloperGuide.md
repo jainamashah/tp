@@ -450,6 +450,10 @@ Key design points shown in the diagrams:
 
 ![SendCommand class diagram](diagrams/SendCommandClassDiagram.png)
 
+![SendCommand validation sequence diagram](diagrams/SendCommandValidationSequence.png)
+
+![SendCommand activity diagram](diagrams/SendCommandActivity.png)
+
 ### Centralized transfer recording
 - `TransactionRecordingService` is the single write path for successful transfers.
 - It verifies the sender wallet exists and has sufficient balance for `amount + fee`.
